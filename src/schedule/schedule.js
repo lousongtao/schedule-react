@@ -11,10 +11,7 @@ import Paper from '@material-ui/core/Paper';
 class Schedule extends React.Component{
     constructor(props) {
         super(props);
-        var date = new Date();
-        date.setDate(date.getDate() - date.getDay() + 1);
         this.state = {
-            monday: date.getDate(),
             schedule: [{
                 day: '7 - 6',
                 users:[{
@@ -36,26 +33,27 @@ class Schedule extends React.Component{
 
     //day is the format of "7 - 6", 7 means July, 6 is the day
     getScheduleUsers = (timeSlotId, day) => {
-        var ss = this.state.schedule.filter(s => s.day == day);
-        var s2 = ss[0].users.filter(s => s.timeSlotId == timeSlotId);
-        return s2[0].users.join("; ");
+        return undefined;
+        // var ss = this.state.schedule.filter(s => s.day == day);
+        // var s2 = ss[0].users.filter(s => s.timeSlotId == timeSlotId);
+        // return s2[0].users.join("; ");
     }
     render() {
         var date = new Date();
-        date.setDate(this.state.monday);
-        var monday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        date.setDate(this.props.monday.getDate());
+        var monday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var tuesday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var tuesday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var wednesday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var wednesday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var thursday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var thursday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var friday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var friday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var saturday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var saturday = (date.getMonth() + 1) + '-' + date.getDate();
         date.setDate(date.getDate() + 1);
-        var sunday = (date.getMonth() + 1) + ' - ' + date.getDate();
+        var sunday = (date.getMonth() + 1) + '-' + date.getDate();
         return (
             <TableContainer component={Paper}>
                 <Table aria-label="simple table">
@@ -72,7 +70,7 @@ class Schedule extends React.Component{
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {this.props.ts.map(ts => (
+                        {this.props.timeSlots.map(ts => (
                             <TableRow key={ts.id} hover={true}>
                                 <TableCell component="th" scope="row">
                                     {ts.displayText}
