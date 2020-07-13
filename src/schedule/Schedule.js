@@ -12,7 +12,6 @@ class Schedule extends React.Component {
             monday: props.monday,
             mapSchedule: new Map(), // 初始化为一个空map; key=date(like '2020-07-07'), value = map which key = timeSlotId and value = list of userId
             mapUserTimes: new Map(), //初始化为一个空map; key=date(like '2020-07-06'), value = map(key = timeSlotId, value = map{key = userId, value = boolean(available)})
-            mapUser: new Map(), //初始化为一个空map; key=userId, value = user
             selectDay: undefined, //双击一个日期时, 改变这个值, 刷新右侧的排班列表
             selectTimeSlot: undefined, //双击一个日期时, 改变这个值, 刷新右侧的排班列表
         }
@@ -37,7 +36,7 @@ class Schedule extends React.Component {
                         listUsers = [];
                         mapDate.set(schedules[i].timeSlotId, listUsers);
                     }
-                    listUsers.push(schedules[i].userId);
+                    listUsers = listUsers.concat(schedules[i].userId);
                 }
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
@@ -74,7 +73,7 @@ class Schedule extends React.Component {
         if (listUserId == undefined)
             return '';
         let userNames = '';
-        listUserId.forEach((item) => userNames += ' ' + this.state.mapUser.get(item));
+        listUserId.forEach((item) => userNames += ' ' + DataContext.users.get(item));
 
         return mapTimeSlot;
     };
@@ -194,7 +193,7 @@ class Schedule extends React.Component {
     buildUserList = () => {
         let availableUsers = [];
         let scheduledUsers = [];
-        let unAvailableUsers = [];
+        let unAvailableUsers = Array.from(DataContext.users.values());
         let scheduleDate = '';
         let scheduleTimeSlot = '';
         if (this.state.selectDay != undefined && this.state.selectTimeSlot != undefined){
@@ -202,7 +201,7 @@ class Schedule extends React.Component {
             if (mapTimeSlot != undefined){
                 let listUser = mapTimeSlot.get(this.state.selectTimeSlot);
                 if (listUser != undefined)
-                    listUser.forEach((userId) => scheduledUsers.push(this.state.mapUser.get(userId)));
+                    listUser.forEach((userId) => scheduledUsers.push(DataContext.users.get(userId)));
             }
 
             mapTimeSlot = this.state.mapUserTimes.get(this.state.selectDay);
@@ -211,9 +210,16 @@ class Schedule extends React.Component {
                 if (mapUserAvailable != undefined){
                     mapUserAvailable.forEach((avai, userId) => {
                         if (avai){
-                            availableUsers.push(this.state.mapUser.get(userId));
-                        } else {
-                            unAvailableUsers.push(this.state.mapUser.get(userId));
+                            availableUsers.push(DataContext.users.get(userId));
+                            var index = -1;
+                            for (let i = 0; i < unAvailableUsers.length; i++) {
+                                if (userId == unAvailableUsers[i].id){
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            if (index >= 0)
+                                unAvailableUsers.splice(index, 1);
                         }
                     });
                 }

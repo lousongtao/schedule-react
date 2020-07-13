@@ -1,18 +1,5 @@
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import React from "react";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import TableContainer from "@material-ui/core/TableContainer";
-import Switch from "@material-ui/core/Switch";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
+import {MenuItem,InputLabel, Select, Switch, TableContainer, TableBody, TableCell, TableRow, TableHead, Table, Grid, Paper, Button} from "@material-ui/core";
 import {DataContext} from "../utils/DataContext";
 
 class UserTime extends React.Component{
@@ -29,7 +16,7 @@ class UserTime extends React.Component{
 
     componentDidMount() {
 
-    }
+    };
 
     //day is YYYY-MM-DD, such as 2020-06-09
     isAvailable = (timeSlotId, day) => {
@@ -41,7 +28,7 @@ class UserTime extends React.Component{
         if (mapTimeSlots == undefined)
             return false;
         return mapTimeSlots.get(timeSlotId) | false;
-    }
+    };
 
     //day is YYYY-MM-DD, such as 2020-06-09
     changeAvailable = (timeSlotId, day) => {
@@ -73,7 +60,7 @@ class UserTime extends React.Component{
                 this.setState({refreshTimes: this.state.refreshTimes+1});
             })
             .catch((error) => alert(error));
-    }
+    };
 
     //切换用户时, 重新加载该用户的空闲时间
     changeStaff = (userId) => {
