@@ -32,8 +32,9 @@ class Schedule extends React.Component {
                     let listUsers = mapDate.get(schedules[i].timeSlotId);
                     if (listUsers == undefined){
                         listUsers = [];
+                        mapDate.set(schedules[i].timeSlotId, listUsers);
                     }
-                    mapDate.set(schedules[i].timeSlotId, listUsers.concat(schedules[i].userIds));
+                    listUsers.push(...schedules[i].userIds);
                 }
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
