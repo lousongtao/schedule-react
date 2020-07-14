@@ -6,7 +6,6 @@ import {DataContext} from "../utils/DataContext";
 class Schedule extends React.Component {
     constructor(props) {
         super(props);
-        console.log('in schedule constructor');
         this.state = {
             refreshTimes: 0,
             monday: props.monday,
@@ -19,7 +18,6 @@ class Schedule extends React.Component {
 
     //1. load current schedule with user //2. load all user's available in this week
     componentDidMount() {
-        console.log('in schedule componentDidMount');
         var urlSchedule = "http://localhost:9000/schedule/byday?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
@@ -34,9 +32,8 @@ class Schedule extends React.Component {
                     let listUsers = mapDate.get(schedules[i].timeSlotId);
                     if (listUsers == undefined){
                         listUsers = [];
-                        mapDate.set(schedules[i].timeSlotId, listUsers);
                     }
-                    listUsers = listUsers.concat(schedules[i].userId);
+                    mapDate.set(schedules[i].timeSlotId, listUsers.concat(schedules[i].userIds));
                 }
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
@@ -73,9 +70,11 @@ class Schedule extends React.Component {
         if (listUserId == undefined)
             return '';
         let userNames = '';
-        listUserId.forEach((item) => userNames += ' ' + DataContext.users.get(item));
+        listUserId.forEach((userId) => {
+            let user = DataContext.users.get(userId);
 
-        return mapTimeSlot;
+            userNames += (user == undefined ? '' : user.name) + ', '});
+        return userNames;
     };
 
     formatDateYYYYMMDD = (d) => {
@@ -95,14 +94,12 @@ class Schedule extends React.Component {
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() - 7);
         this.setState({monday: date});
-        console.log('after click previous week, this.state.monday = ' + this.state.monday);
     };
 
     nextWeek = () => {
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() + 7);
         this.setState({monday: date});
-        console.log('after click next week, this.state.monday = ' + this.state.monday);
     };
 
     //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7
@@ -118,7 +115,6 @@ class Schedule extends React.Component {
     };
 
     buildScheduleTable = () =>{
-        console.log('DataContext.timeSlots = ' + DataContext.timeSlots)
         var monday = this.getDateString(1);
         var tuesday = this.getDateString(2);
         var wednesday = this.getDateString(3);
@@ -147,13 +143,13 @@ class Schedule extends React.Component {
                                 <TableCell component="th" scope="row">
                                     {ts.displayText}
                                 </TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, monday)}>{() =>this.getScheduledUsers(ts.id, monday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, tuesday)}>{() => this.getScheduledUsers(ts.id, tuesday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, wednesday)}>{() => this.getScheduledUsers(ts.id, wednesday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, thursday)}>{() => this.getScheduledUsers(ts.id, thursday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, friday)}>{() => this.getScheduledUsers(ts.id, friday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, saturday)}>{() => this.getScheduledUsers(ts.id, saturday)}</TableCell>
-                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, sunday)}>{() => this.getScheduledUsers(ts.id, sunday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, monday)}>{this.getScheduledUsers(ts.id, monday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, tuesday)}>{this.getScheduledUsers(ts.id, tuesday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, wednesday)}>{this.getScheduledUsers(ts.id, wednesday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, thursday)}>{this.getScheduledUsers(ts.id, thursday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, friday)}>{this.getScheduledUsers(ts.id, friday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, saturday)}>{this.getScheduledUsers(ts.id, saturday)}</TableCell>
+                                <TableCell align="right" onDoubleClick={() => this.editScheduleUser(ts.id, sunday)}>{this.getScheduledUsers(ts.id, sunday)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -241,21 +237,17 @@ class Schedule extends React.Component {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <List subheader={<ListSubheader>Available Staffs</ListSubheader>}>
-                                    {scheduledUsers.map(user => {
-                                        return (
-                                            <ListItem>
-                                                <ListItemIcon>
-                                                    <Checkbox edge={'start'} />
-                                                </ListItemIcon>
-                                                <ListItemText primary={user.name}/>
-                                            </ListItem>
-                                        )
-                                    })}
                                     {availableUsers.map(user => {
+                                        let scheduled = false;
+                                        for (let i = 0; i < scheduledUsers.length; i++) {
+                                            if (user.id == scheduledUsers[i].id){
+                                                scheduled = true;
+                                            }
+                                        }
                                         return (
                                             <ListItem >
                                                 <ListItemIcon>
-                                                    <Checkbox edge={'start'} onChange={(o, status) => this.changeUserSchedule(status, user.id)}/>
+                                                    <Checkbox edge={'start'} checked={scheduled} onChange={(o, status) => this.changeUserSchedule(status, user.id)}/>
                                                 </ListItemIcon>
                                                 <ListItemText primary={user.name}/>
                                             </ListItem>

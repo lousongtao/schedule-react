@@ -6,7 +6,6 @@ class UserTime extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            users: DataContext.users,
             refreshTimes: 0, //设置一个刷新参数, 在界面需要刷新, 但是没有改变state内其他数据的时候, 加1
             monday: props.monday,
             selectUserId: undefined, //当前选中员工, 默认为undefined
@@ -63,16 +62,16 @@ class UserTime extends React.Component{
     };
 
     //切换用户时, 重新加载该用户的空闲时间
-    changeStaff = (userId) => {
+    //react 不是立即更新state中的值, 所以这里不能直接取用state.Monday, 要通过外部把需要显示的日期传入
+    changeStaff = (monday, userId) => {
+        this.state.mapSelectUserTime.clear();
         var url = "http://localhost:9000/users/usertime?userId=" + userId;
-        var monday = this.getDateString(1);
-        var sunday = this.getDateString(7);
+        var monday = this.getDateString(monday, 1);
+        var sunday = this.getDateString(monday,7);
         url += "&startDate=" + monday + "&endDate="+sunday;
         fetch(url)
             .then(res => res.json())
             .then(listUserTime => {
-                this.state.mapSelectUserTime.clear();
-
                 listUserTime = listUserTime.data;
                 for (let i = 0; i < listUserTime.length; i++) {
                     var userTime = listUserTime[i];
@@ -105,41 +104,41 @@ class UserTime extends React.Component{
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() - 7);
         this.setState({monday: date});
-        // if (this.state.selectUserId != undefined){
-        //     this.changeStaff(this.state.selectUserId);
-        // }
+        if (this.state.selectUserId != undefined){
+            this.changeStaff(date, this.state.selectUserId);
+        }
     };
 
     nextWeek = () => {
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() + 7);
         this.setState({monday: date});
-        // if (this.state.selectUserId != undefined){
-        //     this.changeStaff(this.state.selectUserId);
-        // }
+        if (this.state.selectUserId != undefined){
+            this.changeStaff(date, this.state.selectUserId);
+        }
     };
 
-    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7
-    getDateString = (day) =>{
-        var date = new Date(this.state.monday);
+    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7. 这里要主动传入monday, 不能使用state中的monday
+    getDateString = (monday, day) =>{
+        var date = new Date(monday);
         date.setDate(date.getDate() + day - 1);
         return this.formatDateYYYYMMDD(date);
     };
 
     buildTimeTable = () => {
-        var monday = this.getDateString(1);
-        var tuesday = this.getDateString(2);
-        var wednesday = this.getDateString(3);
-        var thursday = this.getDateString(4);
-        var friday = this.getDateString(5);
-        var saturday = this.getDateString(6);
-        var sunday = this.getDateString(7);
+        var monday = this.getDateString(this.state.monday,1);
+        var tuesday = this.getDateString(this.state.monday,2);
+        var wednesday = this.getDateString(this.state.monday,3);
+        var thursday = this.getDateString(this.state.monday,4);
+        var friday = this.getDateString(this.state.monday,5);
+        var saturday = this.getDateString(this.state.monday,6);
+        var sunday = this.getDateString(this.state.monday,7);
         return (
             <div>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <InputLabel>Choose a staff</InputLabel>
-                        <Select onChange={(event) => this.changeStaff(event.target.value)}>
+                        <Select onChange={(event) => this.changeStaff(this.state.monday, event.target.value)}>
                             {Array.from(DataContext.users.values()).map(user => (
                                 <MenuItem value={user.id} key={user.id}>{user.name}</MenuItem>
                             ))}

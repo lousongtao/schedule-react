@@ -26,7 +26,6 @@ class MainUI extends React.Component{
     }
 
     componentDidMount() {
-        console.log('in main ui, timeslot = ' + DataContext.timeSlots);
         fetch("http://localhost:9000/common/timeslot")
             .then(res => res.json())
             .then(json => {
