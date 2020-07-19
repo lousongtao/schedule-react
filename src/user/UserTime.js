@@ -40,7 +40,7 @@ class UserTime extends React.Component{
             available: !available,
             userId: this.state.selectUserId
         };
-        fetch("http://localhost:9000/users/usertime", {
+        fetch(DataContext.serverURL + "/users/usertime", {
             method: 'POST',
             headers: {
                 'Accept': 'application/json, text/plain',
@@ -65,7 +65,7 @@ class UserTime extends React.Component{
     //react 不是立即更新state中的值, 所以这里不能直接取用state.Monday, 要通过外部把需要显示的日期传入
     changeStaff = (monday, userId) => {
         this.state.mapSelectUserTime.clear();
-        var url = "http://localhost:9000/users/usertime?userId=" + userId;
+        var url = DataContext.serverURL + "/users/usertime?userId=" + userId;
         var monday = this.getDateString(monday, 1);
         var sunday = this.getDateString(monday,7);
         url += "&startDate=" + monday + "&endDate="+sunday;

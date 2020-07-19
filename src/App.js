@@ -1,9 +1,10 @@
 import React from 'react';
 import './App.css';
+import {DataContext} from "./utils/DataContext";
 
 function App() {
     let timeSlots;
-    fetch("http://localhost:9000/common/timeslot").then(res => res.json()).then(json => timeSlots = json.data);
+    fetch(DataContext.serverURL + "/common/timeslot").then(res => res.json()).then(json => timeSlots = json.data);
 
     return (
         <div></div>

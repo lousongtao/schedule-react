@@ -18,6 +18,7 @@ class MainUI extends React.Component{
         //init the DataContext from app entrance
         DataContext.timeSlots = [];
         DataContext.users = new Map();
+        DataContext.serverURL = 'http://schedule.js-link.com.au:9000';
         var date = new Date();
         date.setDate(date.getDate() - date.getDay() + 1);
         this.state = {
@@ -28,14 +29,14 @@ class MainUI extends React.Component{
     }
 
     componentDidMount() {
-        fetch("http://localhost:9000/common/timeslot")
+        fetch(DataContext.serverURL + "/common/timeslot")
             .then(res => res.json())
             .then(json => {
                 DataContext.timeSlots = json.data;
                 this.setState({refreshTimes: this.state.refreshTimes + 1})
             })
             .catch((error) => alert(error));
-        fetch("http://localhost:9000/users")
+        fetch(DataContext.serverURL + "/users")
             .then(res => res.json())
             .then(json => {
                 for (let i = 0; i < json.data.length; i++) {

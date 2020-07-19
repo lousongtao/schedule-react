@@ -61,7 +61,7 @@ class StaffMgmt extends React.Component{
             alert('must input user name and password');
             return;
         }
-        fetch("http://localhost:9000/users", {
+        fetch(DataContext.serverURL + "/users", {
             method:'POST',
             headers: {
                 'Accept': 'application/json, text/plain',
@@ -82,7 +82,7 @@ class StaffMgmt extends React.Component{
     };
 
     updateStaff = () => {
-        fetch("http://localhost:9000/users", {
+        fetch(DataContext.serverURL + "/users", {
             method:'POST',
             headers: {
                 'Accept': 'application/json, text/plain',

@@ -18,7 +18,7 @@ class Schedule extends React.Component {
 
     //1. load current schedule with user //2. load all user's available in this week
     componentDidMount() {
-        var urlSchedule = "http://localhost:9000/schedule/byday?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
+        var urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
                 var schedules = json.data;
@@ -39,7 +39,7 @@ class Schedule extends React.Component {
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
             .catch((error) => alert(error));
-        var urlUserTime = "http://localhost:9000/users/usertime?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
+        var urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {
                 let userTimes = json.data;
@@ -160,7 +160,7 @@ class Schedule extends React.Component {
     };
 
     changeUserSchedule = (checked, userId) => {
-        let url = "http://localhost:9000/schedule/arrangeschedule?userId=" + userId + "&timeSlotId=" + this.state.selectTimeSlot + "&date=" + this.state.selectDay;
+        let url = DataContext.serverURL + "/schedule/arrangeschedule?userId=" + userId + "&timeSlotId=" + this.state.selectTimeSlot + "&date=" + this.state.selectDay;
         let method = checked ? 'POST' : 'DELETE';
         fetch(url, {method: method}).then(response => response.json())
             .then(userTime => {
