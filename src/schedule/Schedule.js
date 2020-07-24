@@ -18,7 +18,7 @@ class Schedule extends React.Component {
 
     //1. load current schedule with user //2. load all user's available in this week
     componentDidMount() {
-        var urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
+        var urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(this.state.monday,1) + "&endDate="+this.getDateString(this.state.monday,7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
                 var schedules = json.data;
@@ -39,7 +39,12 @@ class Schedule extends React.Component {
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
             .catch((error) => alert(error));
-        var urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(1) + "&endDate="+this.getDateString(7);
+            this.fetchUserTime(this.state.monday);
+    };
+
+    //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
+    fetchUserTime = (monday) => {
+        var urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {
                 let userTimes = json.data;
@@ -60,6 +65,7 @@ class Schedule extends React.Component {
             })
             .catch((error) => alert(error));
     };
+
 
     //day is the format of "2020-07-06"
     getScheduledUsers = (timeSlotId, day) => {
@@ -95,17 +101,19 @@ class Schedule extends React.Component {
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() - 7);
         this.setState({monday: date});
+        this.fetchUserTime(date);
     };
 
     nextWeek = () => {
         var date = new Date(this.state.monday);
         date.setDate(date.getDate() + 7);
         this.setState({monday: date});
+        this.fetchUserTime(date);
     };
 
-    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7
-    getDateString = (day) =>{
-        var date = new Date(this.state.monday);
+    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7. 这里要主动传入monday, 不能使用state中的monday, 因为react的setState是个异步操作, 取值的时候不一定是最新的值
+    getDateString = (monday, day) =>{
+        var date = new Date(monday);
         date.setDate(date.getDate() + day - 1);
         return this.formatDateYYYYMMDD(date);
     };
@@ -116,13 +124,13 @@ class Schedule extends React.Component {
     };
 
     buildScheduleTable = () =>{
-        var monday = this.getDateString(1);
-        var tuesday = this.getDateString(2);
-        var wednesday = this.getDateString(3);
-        var thursday = this.getDateString(4);
-        var friday = this.getDateString(5);
-        var saturday = this.getDateString(6);
-        var sunday = this.getDateString(7);
+        var monday = this.getDateString(this.state.monday,1);
+        var tuesday = this.getDateString(this.state.monday,2);
+        var wednesday = this.getDateString(this.state.monday,3);
+        var thursday = this.getDateString(this.state.monday,4);
+        var friday = this.getDateString(this.state.monday,5);
+        var saturday = this.getDateString(this.state.monday,6);
+        var sunday = this.getDateString(this.state.monday,7);
         return (
             <TableContainer component={Paper}>
                 <Table aria-label="simple table">

@@ -17,6 +17,29 @@ class UserTime extends React.Component{
 
     };
 
+    //检查是不是所有的时间段都可用
+    isAllTimeAvailable = () => {
+        if (this.state.selectUserId == undefined)
+            return false;
+        if (this.state.mapSelectUserTime == undefined)
+            return false;
+        let days = [this.getDateString(this.state.monday, 1), this.getDateString(this.state.monday, 2),
+            this.getDateString(this.state.monday, 3), this.getDateString(this.state.monday, 4),
+            this.getDateString(this.state.monday, 5), this.getDateString(this.state.monday, 6),
+            this.getDateString(this.state.monday, 7) ];
+        for (let i = 0; i < days.length; i++) {
+            for (let j = 0; j < DataContext.timeSlots.length; j++) {
+                let ts = DataContext.timeSlots[j];
+                var mapTimeSlots = this.state.mapSelectUserTime.get(days[i]);
+                if (mapTimeSlots == undefined)
+                    return false;
+                if (!mapTimeSlots.get(ts.id))
+                    return false;
+            }
+        }
+        return true;
+    }
+
     //day is YYYY-MM-DD, such as 2020-06-09
     isAvailable = (timeSlotId, day) => {
         if (this.state.selectUserId == undefined)
@@ -29,10 +52,46 @@ class UserTime extends React.Component{
         return mapTimeSlots.get(timeSlotId) | false;
     };
 
+    //修改本周, 全部选中/全部清空
+    changeChooseAll = (allAvailable) => {
+        if (this.state.selectUserId == undefined){
+            alert('Must choose a staff')
+            return;
+        }
+
+        if (!window.confirm('Confirm your action to change all of this user time as ' + allAvailable)){
+            return;
+        }
+        this.setState({mapSelectUserTime: new Map()});
+        let url = DataContext.serverURL + "/users/chooseall?userId=" + this.state.selectUserId + "&startDate="
+            +this.getDateString(this.state.monday, 1) + "&chooseAll=" + allAvailable;
+        fetch(url, {method: 'POST'})
+            .then(response => response.json())
+            .then(listUserTime => {
+                if (!listUserTime.result){
+                    alert(listUserTime.message);
+                    return;
+                }
+                listUserTime = listUserTime.data;
+                for (let i = 0; i < listUserTime.length; i++) {
+                    var userTime = listUserTime[i];
+                    var mapTimeSlots = this.state.mapSelectUserTime.get(userTime.date);
+                    if (mapTimeSlots == undefined){
+                        mapTimeSlots = new Map();
+                        this.state.mapSelectUserTime.set(userTime.date, mapTimeSlots);
+                    }
+                    mapTimeSlots.set(userTime.timeSlotId, userTime.available);
+                }
+                this.setState({refreshTimes: this.state.refreshTimes + 1});
+            })
+            .catch((error) => alert(error));
+    };
     //day is YYYY-MM-DD, such as 2020-06-09
     changeAvailable = (timeSlotId, day) => {
-        if (this.state.selectUserId == undefined)
+        if (this.state.selectUserId == undefined){
+            alert('Must choose a staff')
             return;
+        }
         const available = this.isAvailable(timeSlotId, day);
         const data = {
             timeSlotId: timeSlotId,
@@ -49,6 +108,10 @@ class UserTime extends React.Component{
             body: JSON.stringify(data)
         }).then(response => response.json())
             .then(userTime => {
+                if (!userTime.result){
+                    alert(userTime.message);
+                    return;
+                }
                 userTime = userTime.data;
                 var mapTimeSlots = this.state.mapSelectUserTime.get(day);
                 if (mapTimeSlots == undefined){
@@ -66,12 +129,16 @@ class UserTime extends React.Component{
     changeStaff = (monday, userId) => {
         this.state.mapSelectUserTime.clear();
         var url = DataContext.serverURL + "/users/usertime?userId=" + userId;
-        var monday = this.getDateString(monday, 1);
-        var sunday = this.getDateString(monday,7);
-        url += "&startDate=" + monday + "&endDate="+sunday;
+        var sMonday = this.getDateString(monday, 1);
+        var sSunday = this.getDateString(monday,7);
+        url += "&startDate=" + sMonday + "&endDate="+sSunday;
         fetch(url)
             .then(res => res.json())
             .then(listUserTime => {
+                if (!listUserTime.result){
+                    alert(listUserTime.message);
+                    return;
+                }
                 listUserTime = listUserTime.data;
                 for (let i = 0; i < listUserTime.length; i++) {
                     var userTime = listUserTime[i];
@@ -118,7 +185,38 @@ class UserTime extends React.Component{
         }
     };
 
-    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7. 这里要主动传入monday, 不能使用state中的monday
+    copyLastWeek = () => {
+        if (this.state.selectUserId == undefined){
+            alert('Must choose a staff');
+            return;
+        }
+        if (!window.confirm('Confirm your action to copy this staff time from previous week')){
+            return;
+        }
+        var monday = new Date(this.state.monday);
+        var sunday = new Date(this.state.monday);
+        sunday.setDate(sunday.getDate() + 7);
+        var url = DataContext.serverURL + "/users/copyusertime?userId=" + this.state.selectUserId;
+        var sMonday = this.getDateString(monday, 1);
+        url += "&startDate=" + sMonday ;
+        fetch(url,{method: 'POST'}).then(res => res.json())
+            .then(listUserTime => {
+                listUserTime = listUserTime.data;
+                for (let i = 0; i < listUserTime.length; i++) {
+                    var userTime = listUserTime[i];
+                    var mapTimeSlots = this.state.mapSelectUserTime.get(userTime.date);
+                    if (mapTimeSlots == undefined){
+                        mapTimeSlots = new Map();
+                        this.state.mapSelectUserTime.set(userTime.date, mapTimeSlots);
+                    }
+                    mapTimeSlots.set(userTime.timeSlotId, userTime.available);
+                }
+                this.setState({refreshTimes: this.state.refreshTimes + 1});
+            })
+            .catch((error) => alert(error));
+    }
+
+    //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7. 这里要主动传入monday, 不能使用state中的monday, 因为react的setState是个异步操作, 取值的时候不一定是最新的值
     getDateString = (monday, day) =>{
         var date = new Date(monday);
         date.setDate(date.getDate() + day - 1);
@@ -206,6 +304,12 @@ class UserTime extends React.Component{
                             </Grid>
                             <Grid item >
                                 <Button variant={'contained'} color={'primary'} onClick={() => this.nextWeek()}>{'> >'}</Button>
+                            </Grid>
+                            <Grid item >
+                                <Switch checked={this.isAllTimeAvailable()} onChange={() => this.changeChooseAll(!this.isAllTimeAvailable())}/>Choose All
+                            </Grid>
+                            <Grid item >
+                                <Button variant={'contained'} color={'primary'} onClick={() => this.copyLastWeek()}>{'Copy Last Week'}</Button>
                             </Grid>
                         </Grid>
                     </Grid>

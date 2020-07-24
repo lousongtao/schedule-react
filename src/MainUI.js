@@ -19,6 +19,7 @@ class MainUI extends React.Component{
         DataContext.timeSlots = [];
         DataContext.users = new Map();
         DataContext.serverURL = 'http://schedule.js-link.com.au:9000';
+        // DataContext.serverURL = 'http://127.0.0.1:9000';
         var date = new Date();
         date.setDate(date.getDate() - date.getDay() + 1);
         this.state = {
@@ -57,6 +58,7 @@ class MainUI extends React.Component{
     };
 
     showContentPage = (page) => {
+        console.log('showContentPage, monday = ' + this.state.monday);
         if (page == CONTENT_PAGE_SCHEDULE)
             return <Schedule monday={this.state.monday}/>;
         else if (page == CONTENT_PAGE_STAFFCALENDAR)
