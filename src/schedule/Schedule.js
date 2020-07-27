@@ -18,23 +18,23 @@ class Schedule extends React.Component {
 
     //1. load current schedule with user //2. load all user's available in this week
     componentDidMount() {
-        var urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(this.state.monday,1) + "&endDate="+this.getDateString(this.state.monday,7);
+        let urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(this.state.monday,1) + "&endDate="+this.getDateString(this.state.monday,7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
-                var schedules = json.data;
-                for (let i = 0; schedules != undefined && i < schedules.length; i++) {
+                let schedules = json.data;
+                for (let i = 0; schedules !== undefined && i < schedules.length; i++) {
                     let date = schedules[i].date;
                     let mapDate = this.state.mapSchedule.get(date);
-                    if (mapDate == undefined){
+                    if (mapDate === undefined){
                         mapDate = new Map();
                         this.state.mapSchedule.set(date, mapDate);
                     }
-                    let listUsers = mapDate.get(schedules[i].timeSlotId);
-                    if (listUsers == undefined){
-                        listUsers = [];
-                        mapDate.set(schedules[i].timeSlotId, listUsers);
+                    let listUserId = mapDate.get(schedules[i].timeSlotId);
+                    if (listUserId === undefined){
+                        listUserId = [];
+                        mapDate.set(schedules[i].timeSlotId, listUserId);
                     }
-                    listUsers.push(...schedules[i].userIds);
+                    listUserId.push(...schedules[i].userIds);
                 }
                 this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
             })
@@ -42,20 +42,42 @@ class Schedule extends React.Component {
             this.fetchUserTime(this.state.monday);
     };
 
+    //计算员工已排班次数, 根据monday, 往后计算一周时间内的
+    countUserScheduledTime = (userId) => {
+        let count = 0;
+        for (let i = 1; i <=7 ; i++) {
+            let sday = this.getDateString(this.state.monday, i);
+            let mapDate = this.state.mapSchedule.get(sday);
+            if (mapDate !== undefined){
+                for (let j = 0; j < DataContext.timeSlots.length; j++) {
+                    let listUserId = mapDate.get(DataContext.timeSlots[j].id);
+                    if (listUserId !== undefined){
+                        for (let k = 0; k < listUserId.length; k++) {
+                            if (userId === listUserId[k])
+                                count++;
+                        }
+                    }
+                }
+            }
+        }
+        console.log('count = ' + count);
+        return count;
+    };
+
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchUserTime = (monday) => {
-        var urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
+        let urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {
                 let userTimes = json.data;
-                for (let i = 0; userTimes != undefined && i < userTimes.length; i++) {
+                for (let i = 0; userTimes !== undefined && i < userTimes.length; i++) {
                     let mapTimeSlot = this.state.mapUserTimes.get(userTimes[i].date);
-                    if (mapTimeSlot == undefined){
+                    if (mapTimeSlot === undefined){
                         mapTimeSlot = new Map();
                         this.state.mapUserTimes.set(userTimes[i].date, mapTimeSlot);
                     }
                     let mapUserAvailable = mapTimeSlot.get(userTimes[i].timeSlotId);
-                    if (mapUserAvailable == undefined){
+                    if (mapUserAvailable === undefined){
                         mapUserAvailable = new Map();
                         mapTimeSlot.set(userTimes[i].timeSlotId, mapUserAvailable);
                     }
@@ -67,25 +89,25 @@ class Schedule extends React.Component {
     };
 
 
-    //day is the format of "2020-07-06"
+    //day is the format of "2020-07-06", 根据日期和时间段, 返回这个时间已排班的员工
     getScheduledUsers = (timeSlotId, day) => {
         let mapTimeSlot = this.state.mapSchedule.get(day);
-        if (mapTimeSlot == undefined){
+        if (mapTimeSlot === undefined){
             return '';
         }
         let listUserId = mapTimeSlot.get(timeSlotId);
-        if (listUserId == undefined)
+        if (listUserId === undefined)
             return '';
         let userNames = '';
         listUserId.forEach((userId) => {
             let user = DataContext.users.get(userId);
 
-            userNames += (user == undefined ? '' : user.name) + ', '});
+            userNames += (user === undefined ? '' : user.name) + ', '});
         return userNames;
     };
 
     formatDateYYYYMMDD = (d) => {
-        var month = '' + (d.getMonth() + 1),
+        let month = '' + (d.getMonth() + 1),
             day = '' + d.getDate(),
             year = d.getFullYear();
 
@@ -98,14 +120,14 @@ class Schedule extends React.Component {
     };
 
     previousWeek = () => {
-        var date = new Date(this.state.monday);
+        let date = new Date(this.state.monday);
         date.setDate(date.getDate() - 7);
         this.setState({monday: date});
         this.fetchUserTime(date);
     };
 
     nextWeek = () => {
-        var date = new Date(this.state.monday);
+        let date = new Date(this.state.monday);
         date.setDate(date.getDate() + 7);
         this.setState({monday: date});
         this.fetchUserTime(date);
@@ -113,7 +135,7 @@ class Schedule extends React.Component {
 
     //day = {1,2,3,4,5,6,7} monday = 1 , sunday = 7. 这里要主动传入monday, 不能使用state中的monday, 因为react的setState是个异步操作, 取值的时候不一定是最新的值
     getDateString = (monday, day) =>{
-        var date = new Date(monday);
+        let date = new Date(monday);
         date.setDate(date.getDate() + day - 1);
         return this.formatDateYYYYMMDD(date);
     };
@@ -124,13 +146,13 @@ class Schedule extends React.Component {
     };
 
     buildScheduleTable = () =>{
-        var monday = this.getDateString(this.state.monday,1);
-        var tuesday = this.getDateString(this.state.monday,2);
-        var wednesday = this.getDateString(this.state.monday,3);
-        var thursday = this.getDateString(this.state.monday,4);
-        var friday = this.getDateString(this.state.monday,5);
-        var saturday = this.getDateString(this.state.monday,6);
-        var sunday = this.getDateString(this.state.monday,7);
+        let monday = this.getDateString(this.state.monday,1);
+        let tuesday = this.getDateString(this.state.monday,2);
+        let wednesday = this.getDateString(this.state.monday,3);
+        let thursday = this.getDateString(this.state.monday,4);
+        let friday = this.getDateString(this.state.monday,5);
+        let saturday = this.getDateString(this.state.monday,6);
+        let sunday = this.getDateString(this.state.monday,7);
         return (
             <TableContainer component={Paper}>
                 <Table aria-label="simple table">
@@ -167,6 +189,7 @@ class Schedule extends React.Component {
         );
     };
 
+    //勾选/取消勾选用户的排班状态
     changeUserSchedule = (checked, userId) => {
         let url = DataContext.serverURL + "/schedule/arrangeschedule?userId=" + userId + "&timeSlotId=" + this.state.selectTimeSlot + "&date=" + this.state.selectDay;
         let method = checked ? 'POST' : 'DELETE';
@@ -175,19 +198,19 @@ class Schedule extends React.Component {
                 let success = userTime.result;
                 if (success){
                     let mapDate = this.state.mapSchedule.get(this.state.selectDay);
-                    if (mapDate == undefined){
+                    if (mapDate === undefined){
                         mapDate = new Map();
                         this.state.mapSchedule.set(this.state.selectDay, mapDate);
                     }
-                    let listUsers = mapDate.get(this.state.selectTimeSlot);
-                    if (listUsers == undefined){
-                        listUsers = [];
-                        mapDate.set(this.state.selectTimeSlot, listUsers);
+                    let listUserId = mapDate.get(this.state.selectTimeSlot);
+                    if (listUserId === undefined){
+                        listUserId = [];
+                        mapDate.set(this.state.selectTimeSlot, listUserId);
                     }
                     if (checked)
-                        listUsers.push(userId);
+                        listUserId.push(userId);
                     else {
-                        listUsers.splice(listUsers.indexOf(userId), 1);//Javascript array delete one element. Looks very ugly writing like this.
+                        listUserId.splice(listUserId.indexOf(userId), 1);//Javascript array delete one element. Looks very ugly writing like this.
                     }
                 }
                 this.setState({refreshTimes: this.state.refreshTimes+1});
@@ -195,30 +218,35 @@ class Schedule extends React.Component {
             .catch((error) => alert(error));
     };
 
+    /**
+     * 构造员工list界面,
+     * 数据来源于state.mapSchedule和state.mapUserTimes.
+     * 员工信息分成三组, 可用员工, 不可用员工, 已经排入班次的员工, 每次doubleclick一个单元格的时候, 刷新数据.
+     */
     buildUserList = () => {
         let availableUsers = [];
         let scheduledUsers = [];
         let unAvailableUsers = Array.from(DataContext.users.values());
         let scheduleDate = '';
         let scheduleTimeSlot = '';
-        if (this.state.selectDay != undefined && this.state.selectTimeSlot != undefined){
+        if (this.state.selectDay !== undefined && this.state.selectTimeSlot !== undefined){
             let mapTimeSlot = this.state.mapSchedule.get(this.state.selectDay);
-            if (mapTimeSlot != undefined){
-                let listUser = mapTimeSlot.get(this.state.selectTimeSlot);
-                if (listUser != undefined)
-                    listUser.forEach((userId) => scheduledUsers.push(DataContext.users.get(userId)));
+            if (mapTimeSlot !== undefined){
+                let listUserId = mapTimeSlot.get(this.state.selectTimeSlot);
+                if (listUserId !== undefined)
+                    listUserId.forEach((userId) => scheduledUsers.push(DataContext.users.get(userId)));
             }
 
             mapTimeSlot = this.state.mapUserTimes.get(this.state.selectDay);
-            if (mapTimeSlot != undefined){
+            if (mapTimeSlot !== undefined){
                 let mapUserAvailable = mapTimeSlot.get(this.state.selectTimeSlot);
-                if (mapUserAvailable != undefined){
+                if (mapUserAvailable !== undefined){
                     mapUserAvailable.forEach((avai, userId) => {
                         if (avai){
                             availableUsers.push(DataContext.users.get(userId));
-                            var index = -1;
+                            let index = -1;
                             for (let i = 0; i < unAvailableUsers.length; i++) {
-                                if (userId == unAvailableUsers[i].id){
+                                if (userId === unAvailableUsers[i].id){
                                     index = i;
                                     break;
                                 }
@@ -231,7 +259,7 @@ class Schedule extends React.Component {
             }
             scheduleDate = this.state.selectDay;
             DataContext.timeSlots.forEach(ts => {
-                if (ts.id == this.state.selectTimeSlot){
+                if (ts.id === this.state.selectTimeSlot){
                     scheduleTimeSlot = ts.displayText;
                 }
             });
@@ -248,17 +276,18 @@ class Schedule extends React.Component {
                                 <List subheader={<ListSubheader>Available Staffs</ListSubheader>}>
                                     {availableUsers.map(user => {
                                         let scheduled = false;
+                                        let count = this.countUserScheduledTime(user.id);
                                         for (let i = 0; i < scheduledUsers.length; i++) {
-                                            if (user.id == scheduledUsers[i].id){
+                                            if (user.id === scheduledUsers[i].id){
                                                 scheduled = true;
                                             }
                                         }
                                         return (
-                                            <ListItem >
+                                            <ListItem>
                                                 <ListItemIcon>
                                                     <Checkbox edge={'start'} checked={scheduled} onChange={(o, status) => this.changeUserSchedule(status, user.id)}/>
                                                 </ListItemIcon>
-                                                <ListItemText primary={user.name}/>
+                                                <ListItemText primary={user.name + ' (' + count + ' / ' + user.shiftTimes + ')'}/>
                                             </ListItem>
                                         )
                                     })}

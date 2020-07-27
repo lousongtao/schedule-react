@@ -1,20 +1,22 @@
 import {
     Button,
-    Checkbox,
     Grid,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    ListSubheader, Paper, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow
+    MenuItem,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow
 } from "@material-ui/core";
 import React from "react";
 import {DataContext} from "../utils/DataContext";
-import FormControl from "@material-ui/core/FormControl";
 import TextField from "@material-ui/core/TextField";
 import Switch from "@material-ui/core/Switch";
 import InputLabel from "@material-ui/core/InputLabel";
+import Select from "@material-ui/core/Select";
+import FormControl from "@material-ui/core/FormControl";
 
 class StaffMgmt extends React.Component{
     constructor(props) {
@@ -27,7 +29,8 @@ class StaffMgmt extends React.Component{
 
     }
 
-    editUser = (userId) => {
+    //双击表格, 显示用户信息到编辑表格内
+    showUserInfoIntoEdit = (userId) => {
         this.setState({updateUser: DataContext.users.get(userId)});
     };
 
@@ -39,14 +42,16 @@ class StaffMgmt extends React.Component{
                         <TableRow>
                             <TableCell>ID</TableCell>
                             <TableCell>Name</TableCell>
+                            <TableCell>Shift Times</TableCell>
                             <TableCell>Available</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {Array.from(DataContext.users.values()).map(user => (
-                            <TableRow key={user.id} hover={true} onDoubleClick={() => this.editUser(user.id)}>
+                            <TableRow key={user.id} hover={true} onDoubleClick={() => this.showUserInfoIntoEdit(user.id)}>
                                 <TableCell>{user.id}</TableCell>
                                 <TableCell>{user.name}</TableCell>
+                                <TableCell>{user.shiftTimes}</TableCell>
                                 <TableCell>{user.available}</TableCell>
                             </TableRow>
                         ))}
@@ -82,6 +87,10 @@ class StaffMgmt extends React.Component{
     };
 
     updateStaff = () => {
+        if (this.state.updateUser === undefined){
+            alert('No staff info found in form.');
+            return;
+        }
         fetch(DataContext.serverURL + "/users", {
             method:'POST',
             headers: {
@@ -94,7 +103,7 @@ class StaffMgmt extends React.Component{
                 if (json.result) {
                     let user = json.data;
                     DataContext.users.set(user.id, user);
-                    this.setState({updateUser: {}});
+                    this.setState({updateUser: undefined});
                 } else {
                     alert('Update user failed');
                 }
@@ -109,10 +118,13 @@ class StaffMgmt extends React.Component{
                     <Grid item xs={12}>
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
-                                <TextField id={'name'} label={'name'} onChange={(e) => this.state.addUser.name = e.target.value}></TextField>
+                                <TextField id={'name'} label={'name'} onChange={(e) => this.state.addUser.name = e.target.value}/>
                             </Grid>
                             <Grid item xs={3}>
-                                <TextField id={'password'} label={'password'} onChange={(e) => this.state.addUser.password = e.target.value}></TextField>
+                                <TextField id={'password'} label={'password'} onChange={(e) => this.state.addUser.password = e.target.value}/>
+                            </Grid>
+                            <Grid item xs={3}>
+                                {this.buildComponentShiftTimes()}
                             </Grid>
                         </Grid>
                     </Grid>
@@ -124,30 +136,49 @@ class StaffMgmt extends React.Component{
         )
     };
 
+    buildComponentShiftTimes = () => {
+        let items = [];
+        for (let i = 0; i <= DataContext.timeSlots.length * 7; i++) {
+            items.push(<MenuItem value={i} key={'shiftTimes'+i}>{i}</MenuItem>);
+        }
+        return (
+            <FormControl>
+                <InputLabel>Shift Times</InputLabel>
+                <Select value={this.state.updateUser ? this.state.updateUser.shiftTimes : '0'}
+                        onChange={(event) => this.state.updateUser.shiftTimes = event.target.value}>
+                    {items}
+                </Select>
+            </FormControl>
+        )
+    };
+
     buildUpdateForm = () => {
         return (
             <form>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <Grid container spacing={2}>
-                            <Grid item xs={3}>
-                                <TextField id={'id'} label={'id'} disabled value={this.state.updateUser ? this.state.updateUser.id : ''}></TextField>
+                            <Grid item xs={1}>
+                                <TextField id={'id'} label={'id'} disabled value={this.state.updateUser ? this.state.updateUser.id : ''}/>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid item xs={2}>
                                 <TextField id={'name'} label={'name'}
                                            onChange={(e) => this.state.updateUser.name = e.target.value}
-                                           value={this.state.updateUser ? this.state.updateUser.name : ''}></TextField>
+                                           value={this.state.updateUser ? this.state.updateUser.name : ''}/>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid item xs={2}>
                                 <TextField id={'password'} label={'password'}
                                            onChange={(e) => this.state.updateUser.password = e.target.value}
-                                           value={this.state.updateUser ? this.state.updateUser.password : ''}></TextField>
+                                           value={this.state.updateUser ? this.state.updateUser.password : ''}/>
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid item xs={2}>
+                                {this.buildComponentShiftTimes()}
+                            </Grid>
+                            <Grid item xs={2}>
                                 <InputLabel htmlFor={'available'}>Available</InputLabel>
                                 <Switch id={'available'} label={'available'}
                                         onChange={(e) => this.state.updateUser.available = e.target.value}
-                                        checked={this.state.updateUser ? this.state.updateUser.available : false}></Switch>
+                                        checked={this.state.updateUser ? this.state.updateUser.available : false}/>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -165,10 +196,10 @@ class StaffMgmt extends React.Component{
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}>
+                            <Grid item xs={5}>
                                 {this.buildTable()}
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={7}>
                                 <Grid container spacing={2}>
                                     <Grid item xs={12}>
                                         {this.buildAddForm()}

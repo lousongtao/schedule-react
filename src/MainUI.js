@@ -18,14 +18,14 @@ class MainUI extends React.Component{
         //init the DataContext from app entrance
         DataContext.timeSlots = [];
         DataContext.users = new Map();
-        DataContext.serverURL = 'http://schedule.js-link.com.au:9000';
-        // DataContext.serverURL = 'http://127.0.0.1:9000';
-        var date = new Date();
+        // DataContext.serverURL = 'http://schedule.js-link.com.au:9000';
+        DataContext.serverURL = 'http://127.0.0.1:9000';
+        let date = new Date();
         date.setDate(date.getDate() - date.getDay() + 1);
         this.state = {
             monday: date,
             refreshTimes: 0,
-            contentPage: CONTENT_PAGE_SCHEDULE, //1 = schedule; 2 = staff calendar; 3 = staff management
+            contentPage: CONTENT_PAGE_STAFFMANAGEMENT, //1 = schedule; 2 = staff calendar; 3 = staff management
         }
     }
 
@@ -59,12 +59,12 @@ class MainUI extends React.Component{
 
     showContentPage = (page) => {
         console.log('showContentPage, monday = ' + this.state.monday);
-        if (page == CONTENT_PAGE_SCHEDULE)
+        if (page === CONTENT_PAGE_SCHEDULE)
             return <Schedule monday={this.state.monday}/>;
-        else if (page == CONTENT_PAGE_STAFFCALENDAR)
+        else if (page === CONTENT_PAGE_STAFFCALENDAR)
             return <UserTime monday={this.state.monday}/>
-        else if (page == CONTENT_PAGE_STAFFMANAGEMENT)
-            return <StaffMgmt></StaffMgmt>
+        else if (page === CONTENT_PAGE_STAFFMANAGEMENT)
+            return <StaffMgmt/>
     };
 
     showStaffMgmt = () => {
