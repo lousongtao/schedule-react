@@ -18,28 +18,8 @@ class Schedule extends React.Component {
 
     //1. load current schedule with user //2. load all user's available in this week
     componentDidMount() {
-        let urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(this.state.monday,1) + "&endDate="+this.getDateString(this.state.monday,7);
-        fetch(urlSchedule).then(res => res.json())
-            .then(json => {
-                let schedules = json.data;
-                for (let i = 0; schedules !== undefined && i < schedules.length; i++) {
-                    let date = schedules[i].date;
-                    let mapDate = this.state.mapSchedule.get(date);
-                    if (mapDate === undefined){
-                        mapDate = new Map();
-                        this.state.mapSchedule.set(date, mapDate);
-                    }
-                    let listUserId = mapDate.get(schedules[i].timeSlotId);
-                    if (listUserId === undefined){
-                        listUserId = [];
-                        mapDate.set(schedules[i].timeSlotId, listUserId);
-                    }
-                    listUserId.push(...schedules[i].userIds);
-                }
-                this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
-            })
-            .catch((error) => alert(error));
-            this.fetchUserTime(this.state.monday);
+        this.fetchScheduleData(this.state.monday);
+        this.fetchUserTime(this.state.monday);
     };
 
     //计算员工已排班次数, 根据monday, 往后计算一周时间内的
@@ -65,7 +45,34 @@ class Schedule extends React.Component {
     };
 
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
+    fetchScheduleData = (monday) => {
+        this.state.mapSchedule = new Map();
+        let urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(monday,1) + "&endDate="+this.getDateString(monday,7);
+        fetch(urlSchedule).then(res => res.json())
+            .then(json => {
+                let schedules = json.data;
+                for (let i = 0; schedules !== undefined && i < schedules.length; i++) {
+                    let date = schedules[i].date;
+                    let mapDate = this.state.mapSchedule.get(date);
+                    if (mapDate === undefined){
+                        mapDate = new Map();
+                        this.state.mapSchedule.set(date, mapDate);
+                    }
+                    let listUserId = mapDate.get(schedules[i].timeSlotId);
+                    if (listUserId === undefined){
+                        listUserId = [];
+                        mapDate.set(schedules[i].timeSlotId, listUserId);
+                    }
+                    listUserId.push(...schedules[i].userIds);
+                }
+                this.setState({refreshTimes: this.state.refreshTimes + 1}); //每个fetch都要刷新一次, 因为不同fetch返回的循序不一样
+            })
+            .catch((error) => alert(error));
+    };
+
+    //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchUserTime = (monday) => {
+        this.state.mapUserTimes = new Map();
         let urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {
@@ -122,14 +129,16 @@ class Schedule extends React.Component {
     previousWeek = () => {
         let date = new Date(this.state.monday);
         date.setDate(date.getDate() - 7);
-        this.setState({monday: date});
+        this.setState({monday: date, selectDay: undefined, selectTimeSlot: undefined});
+        this.fetchScheduleData(date);
         this.fetchUserTime(date);
     };
 
     nextWeek = () => {
         let date = new Date(this.state.monday);
         date.setDate(date.getDate() + 7);
-        this.setState({monday: date});
+        this.setState({monday: date, selectDay: undefined, selectTimeSlot: undefined});
+        this.fetchScheduleData(date);
         this.fetchUserTime(date);
     };
 

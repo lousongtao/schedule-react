@@ -8,7 +8,8 @@ import MainUI from "./MainUI";
 
 ReactDOM.render(
   <React.StrictMode>
-    <MainUI />
+    {/*<App />*/}
+    <MainUI/>
   </React.StrictMode>,
   document.getElementById('root')
 );

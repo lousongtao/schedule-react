@@ -1,13 +1,34 @@
-import React from 'react';
-import './App.css';
-import {DataContext} from "./utils/DataContext";
+import React, {useReducer} from 'react';
+import Container from '@material-ui/core/Container';
+import Grid from '@material-ui/core/Grid';
+
+
+export const AppContext = React.createContext(null);
+
+const initialState = {inputText: 'init'};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case 'UPDATE_INPUT':
+            return {
+                inputText: action.data
+            };
+        default:
+            return initialState;
+    }
+}
 
 function App() {
-    let timeSlots;
-    fetch(DataContext.serverURL + "/common/timeslot").then(res => res.json()).then(json => timeSlots = json.data);
-
+    const [state, dispatch] = useReducer(reducer, initialState);
     return (
-        <div></div>
+        <Container maxWidth="lg">
+            <Grid container spacing={1}>
+                <AppContext.Provider value={{state, dispatch}}>
+
+                </AppContext.Provider>
+            </Grid>
+
+        </Container>
     );
 }
 
