@@ -46,7 +46,7 @@ class Schedule extends React.Component {
 
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchScheduleData = (monday) => {
-        this.state.mapSchedule = new Map();
+        this.setState({mapSchedule: new Map()});
         let urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(monday,1) + "&endDate="+this.getDateString(monday,7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
@@ -72,7 +72,7 @@ class Schedule extends React.Component {
 
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchUserTime = (monday) => {
-        this.state.mapUserTimes = new Map();
+        this.setState({mapUserTimes: new Map()});
         let urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {

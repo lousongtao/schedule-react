@@ -1,6 +1,5 @@
-import {makeStyles} from "@material-ui/core/styles";
 import {Button, Grid, MenuItem} from "@material-ui/core";
-import React, {createContext, useContext, useState} from "react";
+import React, {useContext, useState} from "react";
 import TextField from "@material-ui/core/TextField";
 import {UserContext} from "./UserMgmt";
 import {DataContext} from "../utils/DataContext";

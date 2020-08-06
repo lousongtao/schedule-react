@@ -1,4 +1,4 @@
-import {useContext, useState} from "react";
+import {useContext} from "react";
 import {Button, Grid, MenuItem} from "@material-ui/core";
 import React from "react";
 import {UserContext} from "./UserMgmt";
@@ -12,10 +12,6 @@ import FormControl from "@material-ui/core/FormControl";
 export default function UpdateUserForm() {
     const {state, dispatch} = useContext(UserContext);
     let user = state.updateUser;//copy value from state, otherwise change value will update the original data
-    console.log('in UpdateUserForm, state.updateUser = ' + user);
-    if (user){
-        console.log('in UpdateUserForm, state.updateUser.id = ' + user.id);
-    }
     const header = {
             'Accept': 'application/json, text/plain',
             'Content-Type': 'application/json;charset=UTF-8'

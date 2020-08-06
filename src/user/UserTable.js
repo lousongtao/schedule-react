@@ -1,5 +1,4 @@
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@material-ui/core";
-import {DataContext} from "../utils/DataContext";
 import React, {useContext} from "react";
 import {UserContext} from "./UserMgmt";
 
