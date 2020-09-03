@@ -47,7 +47,7 @@ class Schedule extends React.Component {
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchScheduleData = (monday) => {
         this.setState({mapSchedule: new Map()});
-        let urlSchedule = DataContext.serverURL + "/schedule/byday?startDate=" + this.getDateString(monday,1) + "&endDate="+this.getDateString(monday,7);
+        let urlSchedule = "/schedule/byday?startDate=" + this.getDateString(monday,1) + "&endDate="+this.getDateString(monday,7);
         fetch(urlSchedule).then(res => res.json())
             .then(json => {
                 let schedules = json.data;
@@ -73,7 +73,7 @@ class Schedule extends React.Component {
     //react setState是个异步动作, 不能根据state.monday查询, 否则不是最新时间, 这个要调用方主动传递参数
     fetchUserTime = (monday) => {
         this.setState({mapUserTimes: new Map()});
-        let urlUserTime = DataContext.serverURL + "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
+        let urlUserTime = "/users/usertime?startDate=" + this.getDateString(monday, 1) + "&endDate="+this.getDateString(monday, 7);
         fetch(urlUserTime).then(res => res.json())
             .then(json => {
                 let userTimes = json.data;
@@ -200,7 +200,7 @@ class Schedule extends React.Component {
 
     //勾选/取消勾选用户的排班状态
     changeUserSchedule = (checked, userId) => {
-        let url = DataContext.serverURL + "/schedule/arrangeschedule?userId=" + userId + "&timeSlotId=" + this.state.selectTimeSlot + "&date=" + this.state.selectDay;
+        let url = "/schedule/arrangeschedule?userId=" + userId + "&timeSlotId=" + this.state.selectTimeSlot + "&date=" + this.state.selectDay;
         let method = checked ? 'POST' : 'DELETE';
         fetch(url, {method: method}).then(response => response.json())
             .then(userTime => {

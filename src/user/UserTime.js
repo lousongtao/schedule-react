@@ -63,7 +63,7 @@ class UserTime extends React.Component{
             return;
         }
         this.setState({mapSelectUserTime: new Map()});
-        let url = DataContext.serverURL + "/users/chooseall?userId=" + this.state.selectUserId + "&startDate="
+        let url = "/users/chooseall?userId=" + this.state.selectUserId + "&startDate="
             +this.getDateString(this.state.monday, 1) + "&chooseAll=" + allAvailable;
         fetch(url, {method: 'POST'})
             .then(response => response.json())
@@ -99,7 +99,7 @@ class UserTime extends React.Component{
             available: !available,
             userId: this.state.selectUserId
         };
-        fetch(DataContext.serverURL + "/users/usertime", {
+        fetch("/users/usertime", {
             method: 'POST',
             headers: {
                 'Accept': 'application/json, text/plain',
@@ -128,7 +128,7 @@ class UserTime extends React.Component{
     //react 不是立即更新state中的值, 所以这里不能直接取用state.Monday, 要通过外部把需要显示的日期传入
     changeStaff = (monday, userId) => {
         this.state.mapSelectUserTime.clear();
-        let url = DataContext.serverURL + "/users/usertime?userId=" + userId;
+        let url = "/users/usertime?userId=" + userId;
         let sMonday = this.getDateString(monday, 1);
         let sSunday = this.getDateString(monday,7);
         url += "&startDate=" + sMonday + "&endDate="+sSunday;
@@ -196,7 +196,7 @@ class UserTime extends React.Component{
         let monday = new Date(this.state.monday);
         let sunday = new Date(this.state.monday);
         sunday.setDate(sunday.getDate() + 7);
-        let url = DataContext.serverURL + "/users/copyusertime?userId=" + this.state.selectUserId;
+        let url = "/users/copyusertime?userId=" + this.state.selectUserId;
         let sMonday = this.getDateString(monday, 1);
         url += "&startDate=" + sMonday ;
         fetch(url,{method: 'POST'}).then(res => res.json())

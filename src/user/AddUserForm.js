@@ -33,7 +33,7 @@ function AddUserForm() {
                 shiftTimes: shiftTimes
             })
         };
-        fetch(DataContext.serverURL + "/users", data)
+        fetch("/users", data)
             .then(res => res.json())
             .then(json => {
                 if (json.result) {

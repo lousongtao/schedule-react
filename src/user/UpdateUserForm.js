@@ -30,7 +30,7 @@ export default function UpdateUserForm() {
             alert('Must input name and password.');
             return;
         }
-        fetch(DataContext.serverURL + "/users", postdata)
+        fetch("/users", postdata)
             .then(res => res.json())
             .then(json => {
                 if (json.result) {
